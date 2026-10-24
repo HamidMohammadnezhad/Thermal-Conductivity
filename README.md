@@ -4,11 +4,11 @@ A machine learning-based application for estimating soil thermal conductivity us
 
 ## Overview
 
-Soil thermal conductivity is a key thermophysical property governing heat transfer through soil. Its accurate estimation is relevant to geotechnical engineering, geothermal energy systems, and other soil–energy applications. However, predicting this property remains challenging because it depends on several interacting physical and compositional characteristics of the soil.
+Soil thermal conductivity is an important thermophysical property governing heat transfer through soil. Its accurate estimation is relevant to geotechnical engineering, geothermal energy systems, and other soil–energy applications. However, predicting this property remains challenging because it depends on several interacting physical and compositional characteristics of the soil.
 
 This repository provides an interactive computational framework for estimating soil thermal conductivity using two approaches: a trained machine learning model and a quadratic analytical equation. The application is developed using Streamlit and incorporates SHapley Additive exPlanations (SHAP) to support the interpretation of individual machine learning predictions.
 
-Users can enter soil properties, compare the estimates produced by the two approaches, and examine the contributions of individual input features to the machine learning prediction.
+Users can enter soil properties, compare predictions obtained from the two approaches, and examine the contributions of individual input features to the machine learning output.
 
 ## Key Features
 
@@ -27,12 +27,12 @@ The machine learning model uses six input variables describing the physical stat
 
 | Symbol | Feature | Engineering definition | Unit or representation |
 |---|---|---|---|
-| \(\rho_d\) | Dry density | Mass of dry soil solids per unit of total soil volume | Mass per unit volume; e.g., kg/m³ or Mg/m³ |
-| \(n\) | Porosity | Ratio of the volume of voids to the total soil volume | Dimensionless ratio or percentage |
-| \(S\) | Degree of saturation | Ratio of the volume of water to the volume of voids | Dimensionless ratio or percentage |
-| \(Q\) | Quartz content | Proportion of the soil's solid mineral composition represented by quartz | Fraction or percentage, as defined in the training data |
-| \(C_s\) | Sand content | Proportion of the soil composition classified as sand | Fraction or percentage, as defined in the training data |
-| \(C_c\) | Clay content | Proportion of the soil composition classified as clay | Fraction or percentage, as defined in the training data |
+| ρd | Dry density | Mass of dry soil solids per unit of total soil volume | kg/m³ or Mg/m³ |
+| n | Porosity | Ratio of void volume to total soil volume | Dimensionless ratio or percentage |
+| S | Degree of saturation | Ratio of water volume to void volume | Dimensionless ratio or percentage |
+| Q | Quartz content | Proportion of the soil's solid mineral composition represented by quartz | Fraction or percentage |
+| Cs | Sand content | Proportion of the soil classified as sand | Fraction or percentage |
+| Cc | Clay content | Proportion of the soil classified as clay | Fraction or percentage |
 
 The input vector is defined as
 
@@ -40,9 +40,9 @@ $$
 \mathbf{x} = [\rho_d, n, S, Q, C_s, C_c]
 $$
 
-**Input consistency is essential.** The units, numerical scales, and definitions must match those used to train the model. For example, a porosity value of \(0.35\) represents a different numerical input from \(35\), even though both may describe the same physical porosity.
+The units, numerical scales, and definitions of the input variables must be consistent with those used during model development. For example, a porosity value of 0.35 is numerically different from 35, even though both may represent the same physical porosity when expressed as a fraction and a percentage, respectively.
 
-The precise measurement units and conventions should be verified against the original dataset and model-development procedure before applying the application to new data.
+The original dataset and model-development procedure should be consulted to verify the exact units and conventions.
 
 ### 2. Machine Learning Model
 
@@ -56,15 +56,15 @@ $$
 
 where:
 
-- \(\hat{K}_{\mathrm{ML}}\) is the thermal conductivity predicted by the machine learning model.
-- \(f_{\mathrm{GBR}}\) denotes the trained Gradient Boosting Regression pipeline.
-- \(\mathbf{x}\) denotes the six-dimensional input vector defined above.
+- **K̂ML** denotes the thermal conductivity predicted by the machine learning model.
+- **fGBR** denotes the trained Gradient Boosting Regression pipeline.
+- **x** denotes the input vector containing the six soil properties.
 
-The serialized pipeline is loaded for prediction. The model is not retrained whenever a new input sample is evaluated.
+The serialized pipeline is loaded for inference. The model is not retrained whenever a new input sample is evaluated.
 
 ### 3. Analytical Equation
 
-The application also implements the following quadratic equation to estimate soil thermal conductivity:
+The application also implements the following quadratic equation for estimating soil thermal conductivity:
 
 $$
 \begin{aligned}
@@ -77,12 +77,12 @@ $$
 
 where:
 
-- \(K_{\mathrm{eq}}\) denotes the thermal conductivity estimated using the analytical equation.
-- \(Q\) represents quartz content.
-- \(S\) represents degree of saturation.
-- \(n\) represents porosity.
+- **Keq** denotes the thermal conductivity estimated using the analytical equation.
+- **Q** represents quartz content.
+- **S** represents degree of saturation.
+- **n** represents porosity.
 
-Unlike the machine learning model, the analytical equation explicitly uses only three variables: quartz content, degree of saturation, and porosity.
+Unlike the machine learning model, the analytical equation explicitly uses only three input variables: quartz content, degree of saturation, and porosity.
 
 The equation must be evaluated using the original variable definitions, numerical scales, and thermal conductivity units under which its coefficients were developed. Its applicability to new soil types should be assessed against the calibration domain of the underlying research.
 
@@ -98,12 +98,12 @@ $$
 
 where:
 
-- \(E[f(\mathbf{X})]\) is the expected model output over the SHAP background distribution and represents the reference or baseline prediction.
-- \(\phi_i\) is the SHAP value assigned to feature \(i\), quantifying its contribution to the difference between the explained prediction and the baseline.
-- \(\hat{K}_{\mathrm{ML}}\) is the final machine learning prediction for the input sample being explained.
-- \(i\) indexes the six input features.
+- **E[f(X)]** represents the baseline model output, calculated with respect to the SHAP background distribution.
+- **φᵢ** represents the SHAP value assigned to feature i, quantifying its contribution to the difference between the explained prediction and the baseline.
+- **K̂ML** denotes the final machine learning prediction for the sample being explained.
+- **i** indexes the six input features.
 
-The SHAP waterfall plot illustrates how the feature contributions combine to move the model output from its baseline to the prediction for a particular sample.
+The SHAP waterfall plot illustrates how the contributions of individual features combine to move the prediction from its baseline value to the final model output.
 
 A positive SHAP value indicates that a feature contributes to increasing the prediction relative to the baseline, whereas a negative SHAP value indicates a contribution that decreases the prediction relative to the baseline.
 
@@ -246,4 +246,14 @@ If this software or its methodology is used in an academic publication, please c
 
 **Publication reference:** To be added when the corresponding research work is finalized or published.
 
-## Acknowled
+## Acknowledgment
+
+This project is associated with research activities in machine learning applications for geotechnical engineering and soil thermal-property estimation.
+
+**Affiliation:** Faculty of Civil, Water and Environmental Engineering, Shahid Beheshti University.
+
+## Copyright
+
+© Dr. Mohammadnezhad's Research Team. All rights reserved.
+
+The software, trained model artifacts, and associated materials are provided for academic and research purposes. Reuse, redistribution, and modification are subject to the applicable repository license and the terms specified by the authors. This copyright statement does not itself establish an open-source license.
