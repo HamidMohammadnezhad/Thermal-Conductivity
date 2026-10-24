@@ -4,35 +4,35 @@ A machine learning-based application for estimating soil thermal conductivity us
 
 ## Overview
 
-Soil thermal conductivity is an important thermophysical property governing heat transfer in soil. Its accurate estimation is relevant to geotechnical engineering, geothermal energy systems, and other soil–energy applications. However, prediction remains challenging because thermal conductivity depends on multiple interacting soil properties.
+Soil thermal conductivity is a key thermophysical property governing heat transfer through soil. Its accurate estimation is relevant to geotechnical engineering, geothermal energy systems, and other soil–energy applications. However, predicting this property remains challenging because it depends on several interacting physical and compositional characteristics of the soil.
 
 This repository provides an interactive computational framework for estimating soil thermal conductivity using two approaches: a trained machine learning model and a quadratic analytical equation. The application is developed using Streamlit and incorporates SHapley Additive exPlanations (SHAP) to support the interpretation of individual machine learning predictions.
 
-The framework enables users to enter soil properties, compare the predictions obtained from the two approaches, and investigate the contributions of individual input features to the machine learning output.
+Users can enter soil properties, compare the estimates produced by the two approaches, and examine the contributions of individual input features to the machine learning prediction.
 
 ## Key Features
 
 - **Machine learning prediction:** Estimates soil thermal conductivity using a pretrained Gradient Boosting Regression pipeline.
 - **Analytical estimation:** Calculates thermal conductivity using a quadratic equation involving porosity, degree of saturation, and quartz content.
 - **Explainable artificial intelligence:** Uses SHAP waterfall plots to examine feature contributions to individual machine learning predictions.
-- **Prediction comparison:** Presents machine learning and analytical estimates and their numerical differences.
-- **Interactive interface:** Provides a browser-based application for entering input parameters and examining results.
+- **Prediction comparison:** Presents the estimates obtained from both approaches and their numerical differences.
+- **Interactive interface:** Provides a browser-based environment for entering soil properties and examining results.
 - **Reference dataset analysis:** Reports descriptive statistics and feature ranges from the reference dataset.
 
 ## Methodology
 
 ### 1. Input Features
 
-The machine learning model uses six soil properties as input variables.
+The machine learning model uses six input variables describing the physical state and composition of the soil.
 
-| Symbol | Input feature | Description |
-|---|---|---|
-| \(\rho_d\) | Dry density | Dry density of the soil |
-| \(n\) | Porosity | Fraction of the total soil volume occupied by voids |
-| \(S\) | Degree of saturation | Fraction of the void space occupied by water |
-| \(Q\) | Quartz content | Quartz fraction or proportion |
-| \(C_s\) | Sand content | Sand fraction or proportion |
-| \(C_c\) | Clay content | Clay fraction or proportion |
+| Symbol | Feature | Engineering definition | Unit or representation |
+|---|---|---|---|
+| \(\rho_d\) | Dry density | Mass of dry soil solids per unit of total soil volume | Mass per unit volume; e.g., kg/m³ or Mg/m³ |
+| \(n\) | Porosity | Ratio of the volume of voids to the total soil volume | Dimensionless ratio or percentage |
+| \(S\) | Degree of saturation | Ratio of the volume of water to the volume of voids | Dimensionless ratio or percentage |
+| \(Q\) | Quartz content | Proportion of the soil's solid mineral composition represented by quartz | Fraction or percentage, as defined in the training data |
+| \(C_s\) | Sand content | Proportion of the soil composition classified as sand | Fraction or percentage, as defined in the training data |
+| \(C_c\) | Clay content | Proportion of the soil composition classified as clay | Fraction or percentage, as defined in the training data |
 
 The input vector is defined as
 
@@ -40,11 +40,13 @@ $$
 \mathbf{x} = [\rho_d, n, S, Q, C_s, C_c]
 $$
 
-Input values must use the same units, numerical scales, and variable definitions as those used during model development.
+**Input consistency is essential.** The units, numerical scales, and definitions must match those used to train the model. For example, a porosity value of \(0.35\) represents a different numerical input from \(35\), even though both may describe the same physical porosity.
+
+The precise measurement units and conventions should be verified against the original dataset and model-development procedure before applying the application to new data.
 
 ### 2. Machine Learning Model
 
-The application loads a previously trained machine learning pipeline from `best_model.pkl`. The pipeline incorporates preprocessing steps and a Gradient Boosting Regressor.
+The application loads a previously trained machine learning pipeline from `best_model.pkl`. The pipeline incorporates preprocessing operations and a Gradient Boosting Regressor.
 
 The predicted thermal conductivity is expressed as
 
@@ -54,15 +56,15 @@ $$
 
 where:
 
-- \(\hat{K}_{\mathrm{ML}}\) denotes the machine learning prediction.
-- \(f_{\mathrm{GBR}}\) represents the trained Gradient Boosting Regression pipeline.
-- \(\mathbf{x}\) represents the vector of six input features.
+- \(\hat{K}_{\mathrm{ML}}\) is the thermal conductivity predicted by the machine learning model.
+- \(f_{\mathrm{GBR}}\) denotes the trained Gradient Boosting Regression pipeline.
+- \(\mathbf{x}\) denotes the six-dimensional input vector defined above.
 
-The serialized pipeline is loaded for inference; the model is not retrained whenever a prediction is generated.
+The serialized pipeline is loaded for prediction. The model is not retrained whenever a new input sample is evaluated.
 
 ### 3. Analytical Equation
 
-The application also implements the following quadratic equation for estimating soil thermal conductivity:
+The application also implements the following quadratic equation to estimate soil thermal conductivity:
 
 $$
 \begin{aligned}
@@ -75,36 +77,37 @@ $$
 
 where:
 
-- \(K_{\mathrm{eq}}\) denotes the analytical estimate of thermal conductivity.
+- \(K_{\mathrm{eq}}\) denotes the thermal conductivity estimated using the analytical equation.
 - \(Q\) represents quartz content.
 - \(S\) represents degree of saturation.
 - \(n\) represents porosity.
 
-Unlike the machine learning model, the analytical equation explicitly uses only three input variables: quartz content, degree of saturation, and porosity.
+Unlike the machine learning model, the analytical equation explicitly uses only three variables: quartz content, degree of saturation, and porosity.
 
-The equation must be evaluated using the original variable definitions, numerical scales, and thermal conductivity units under which its coefficients were developed. Its applicability to new soils should be assessed against the original calibration domain.
+The equation must be evaluated using the original variable definitions, numerical scales, and thermal conductivity units under which its coefficients were developed. Its applicability to new soil types should be assessed against the calibration domain of the underlying research.
 
 ### 4. SHAP-Based Model Interpretation
 
-The application employs SHAP with a tree-based explainer to interpret individual machine learning predictions.
+The application uses SHAP with a tree-based explainer to interpret individual machine learning predictions.
 
-SHAP decomposes a prediction into a baseline value and feature contributions:
+A model prediction can be decomposed into a baseline value and the contributions attributed to individual input features:
 
 $$
-\hat{K}_{\mathrm{ML}} = E[f(\mathbf{x})] + \sum_{i=1}^{6}\phi_i
+\hat{K}_{\mathrm{ML}} = E[f(\mathbf{X})] + \sum_{i=1}^{6}\phi_i
 $$
 
 where:
 
-- \(E[f(\mathbf{x})]\) represents the reference or baseline model output.
-- \(\phi_i\) represents the SHAP contribution associated with feature \(i\).
-- \(\hat{K}_{\mathrm{ML}}\) denotes the final model prediction.
+- \(E[f(\mathbf{X})]\) is the expected model output over the SHAP background distribution and represents the reference or baseline prediction.
+- \(\phi_i\) is the SHAP value assigned to feature \(i\), quantifying its contribution to the difference between the explained prediction and the baseline.
+- \(\hat{K}_{\mathrm{ML}}\) is the final machine learning prediction for the input sample being explained.
+- \(i\) indexes the six input features.
 
-The SHAP waterfall plot illustrates how individual features contribute to the difference between the baseline and the prediction for a selected sample.
+The SHAP waterfall plot illustrates how the feature contributions combine to move the model output from its baseline to the prediction for a particular sample.
 
-Positive SHAP values indicate contributions that increase the prediction relative to the baseline, whereas negative SHAP values indicate contributions that decrease it.
+A positive SHAP value indicates that a feature contributes to increasing the prediction relative to the baseline, whereas a negative SHAP value indicates a contribution that decreases the prediction relative to the baseline.
 
-SHAP values describe the behavior of the trained model for the specified input and reference dataset. They should not be interpreted as evidence of causal relationships between soil properties and thermal conductivity.
+SHAP values explain the behavior of the trained model for a specified input and background distribution. They should not be interpreted as evidence of causal relationships between soil properties and thermal conductivity.
 
 ## Repository Structure
 
@@ -119,11 +122,11 @@ Thermal-Conductivity/
 
 | File | Description |
 |---|---|
-| `app.py` | Implements the Streamlit interface, prediction calculations, analytical equation, and SHAP visualization. |
+| `app.py` | Implements the Streamlit interface, prediction workflow, analytical equation, and SHAP visualization. |
 | `best_model.pkl` | Contains the serialized, trained machine learning pipeline. |
 | `Data.xlsx` | Contains the reference dataset used by the application. |
 | `requirements.txt` | Specifies the Python dependencies required to run the application. |
-| `README.md` | Provides documentation for the project and its methodology. |
+| `README.md` | Documents the project's objectives, methodology, installation, and use. |
 
 ## Installation
 
@@ -172,7 +175,7 @@ pip install -r requirements.txt
 
 The application relies on packages for machine learning, data processing, model interpretation, visualization, and web application development, including PyCaret, scikit-learn, NumPy, pandas, Joblib, Streamlit, SHAP, Matplotlib, and OpenPyXL.
 
-For reproducible execution, use package versions compatible with the serialized model and its preprocessing pipeline.
+For reproducible execution, use package versions compatible with the saved model and its preprocessing pipeline.
 
 ## Running the Application
 
@@ -190,11 +193,11 @@ Open the URL in a web browser to access the application.
 
 ## Application Workflow
 
-1. **Enter soil properties.** Provide the six input parameters using the required units and numerical scales.
-2. **Generate predictions.** Select *Predict and Explain* to obtain the machine learning and analytical estimates.
-3. **Compare the estimates.** Examine the predicted values and their numerical differences.
-4. **Interpret the machine learning prediction.** Review the SHAP waterfall plot to investigate the contributions of individual input features.
-5. **Review the reference dataset.** Examine the feature ranges and descriptive statistics to assess the representativeness of the selected input values.
+1. **Enter soil properties.** Provide dry density, porosity, degree of saturation, quartz content, sand content, and clay content using the required units and numerical scales.
+2. **Generate predictions.** Select *Predict and Explain* to calculate the machine learning and analytical estimates.
+3. **Compare estimates.** Examine the predicted values and their numerical differences.
+4. **Interpret the machine learning prediction.** Review the SHAP waterfall plot to investigate the contributions of individual features.
+5. **Review the reference dataset.** Examine feature ranges and descriptive statistics to assess whether the input values are representative of the available data.
 
 The application initializes example inputs using the medians of the reference dataset. These initial values are provided for convenience and should not be interpreted as recommended engineering parameters.
 
@@ -202,7 +205,7 @@ The application initializes example inputs using the medians of the reference da
 
 By default, the application expects `Data.xlsx` in the same directory as `app.py`. An alternative Excel dataset can be uploaded through the application's dataset interface, where supported.
 
-The reference dataset must contain the following feature columns with matching names:
+The reference dataset is expected to contain the following feature columns with matching names:
 
 ```text
 Dry density
@@ -213,18 +216,34 @@ Sand content
 Clay content
 ```
 
-The dataset is used to provide reference statistics and support SHAP interpretation. Uploading a new dataset does not retrain the serialized machine learning model.
+The reference dataset supports descriptive statistics and SHAP interpretation. Uploading a new dataset does not retrain the saved machine learning model.
 
-For meaningful interpretation, the reference dataset should be consistent with the model's training data in terms of variable definitions, numerical scales, and feature distributions. Merely matching the required column names is not sufficient to guarantee valid explanations.
+For meaningful interpretation, the reference dataset should be consistent with the model's training data in terms of variable definitions, numerical scales, and feature distributions. Matching column names alone does not guarantee that the dataset is suitable for explaining the model.
 
 ## Reproducibility and Scientific Considerations
 
-The following considerations are important when applying this framework in research:
+The following considerations are important when applying this framework in academic research:
 
-- **Model provenance:** The saved model must correspond to the intended trained estimator and preprocessing pipeline.
-- **Input consistency:** Variable definitions, units, and numerical scales must match those used during model development.
+- **Model provenance:** The saved artifact must correspond to the intended trained estimator and preprocessing pipeline.
+- **Input consistency:** Variable definitions, measurement units, and numerical scales must match those used during model development.
 - **Domain of applicability:** Predictions outside the training-data ranges may be unreliable and should be evaluated cautiously.
-- **Model interpretability:** SHAP explains the trained model's predictions but does not establish physical causality.
-- **Independent validation:** The application does not independently validate its predictions against new experimental measurements. Predictive performance should be established using appropriate validation procedures and independent data.
-- **Analytical equation limitations:** The quadratic equation should only be applied within its documented calibration domain.
-- **Prediction differences:** Differences
+- **Model interpretation:** SHAP explains the behavior of the trained model but does not establish physical causality.
+- **Independent validation:** The application does not independently validate predictions against new experimental measurements. Predictive performance should be established using appropriate validation procedures and independent data.
+- **Analytical equation limitations:** The equation should only be applied within its documented calibration domain and with its original variable definitions and units.
+- **Prediction differences:** Disagreement between the two approaches is not equivalent to prediction error relative to an experimental measurement.
+
+For publication-quality reproducibility, the associated research paper should document the dataset source, sample size, data preprocessing, model-development procedure, validation strategy, evaluation metrics, and derivation or calibration of the analytical equation.
+
+## Intended Use
+
+This repository is intended for academic research, methodological demonstration, and preliminary estimation of soil thermal conductivity.
+
+Its predictions should not replace experimental measurements, independent validation, or professional engineering judgment when reliable thermal-property estimates are required for engineering design or safety-critical applications.
+
+## Citation
+
+If this software or its methodology is used in an academic publication, please cite the relevant research article associated with the model and analytical equation.
+
+**Publication reference:** To be added when the corresponding research work is finalized or published.
+
+## Acknowled
